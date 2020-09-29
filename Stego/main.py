@@ -16,11 +16,17 @@ def extract():
 
     bitidx=0
     bitval=0
+    count=0
+    breakloop=False
     for i in range(J.shape[0]): # Number of rows in stego.png
         if (I[i, 0, 0] == '-'):
             break
+        if breakloop:
+            break
         for j in range(J.shape[1]): # Number of columns in stego.png
             if (I[i, j, 0] == '-'):
+                break
+            if breakloop:
                 break
             for k in range(3):
                 if (I[i, j, k] == '-'):
@@ -28,12 +34,21 @@ def extract():
                 if bitidx == 8:
                     #Soln
                     if bitval == 61: # 61 is the ASCI for '=' which we set as the stopping criteria
+                        count+=1
+                    else:
+                        for l in range(count):
+                            f.write(chr(61))
+                        count=0
+                        f.write(chr(bitval))
+                    if count == 6:
+                        breakloop=True
                         break
                     #Soln
-                    f.write(chr(bitval))
+
+                    print(bitval, count)
                     bitidx=0
                     bitval=0
-                bitval |= (I[i, j, k] % 2)<<bitidx # Left shift for multiplying number by 2 (Need some explaination for this line)
+                bitval |= (I[i, j, k] % 2)<<bitidx # Left shift for multiplying number by 2
 
                 bitidx+=1
 
@@ -46,7 +61,8 @@ txtfile = open('payload2.txt', 'r') # Open the payload text file you want to hid
 sPayload_msg = txtfile.read()
 
 #Soln
-sPayload_msg += "=====" # Setting a stopping criteria
+sPayload_msg += "======" # Setting a stopping criteria
+print(sPayload_msg)
 
 iBlist = [ord(b) for b in sPayload_msg] # Convert each character into ASCI representation in int
 #print(iBlist)
@@ -64,6 +80,7 @@ for b in iBlist:
 
 
 I = np.asarray(cv2.imread('cover.png')) #Converts the cover object into rgb values
+#print(I)
 
 #white = np.asarray(cv2.imread('white.png'))
 #print(white)
