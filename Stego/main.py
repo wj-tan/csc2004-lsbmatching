@@ -73,7 +73,7 @@ for b in iBlist:
 #print(len(iBits))
 
 
-I = np.asarray(cv2.imread('IU.png')) #Converts the cover object into rgb values
+I = np.asarray(cv2.imread('cover.png')) #Converts the cover object into rgb values
 #print(I)
 
 #white = np.asarray(cv2.imread('white.png'))
