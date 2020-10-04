@@ -17,16 +17,11 @@ def extract():
     bitidx=0
     bitval=0
     count=0
-    breakloop=False
     for i in range(J.shape[0]): # Number of rows in stego.png
         if (I[i, 0, 0] == '-'):
             break
-        if breakloop:
-            break
         for j in range(J.shape[1]): # Number of columns in stego.png
             if (I[i, j, 0] == '-'):
-                break
-            if breakloop:
                 break
             for k in range(3):
                 if (I[i, j, k] == '-'):
@@ -36,16 +31,15 @@ def extract():
                     if bitval == 61: # 61 is the ASCI for '=' which we set as the stopping criteria
                         count+=1
                     else:
-                        for l in range(count):
-                            f.write(chr(61))
-                        count=0
+                        if(count > 0):
+                            for l in range(count):
+                                f.write(chr(61))
+                            count=0
                         f.write(chr(bitval))
                     if count == 6:
-                        breakloop=True
-                        break
+                        f.close()
+                        return 1
                     #Soln
-
-                    print(bitval, count)
                     bitidx=0
                     bitval=0
                 bitval |= (I[i, j, k] % 2)<<bitidx # Left shift for multiplying number by 2
@@ -79,7 +73,7 @@ for b in iBlist:
 #print(len(iBits))
 
 
-I = np.asarray(cv2.imread('cover.png')) #Converts the cover object into rgb values
+I = np.asarray(cv2.imread('IU.png')) #Converts the cover object into rgb values
 #print(I)
 
 #white = np.asarray(cv2.imread('white.png'))
