@@ -144,7 +144,7 @@ class decoderClass():
         bits = bits[:(-self.nullbits)]
         string = ''.join([chr(b) for b in bits])
 
-        with open(self.outfile, 'w') as f:
+        with open(self.outfile, 'w', encoding='latin-1') as f: #Added encoding = latin 1
             f.write(string)
 
 

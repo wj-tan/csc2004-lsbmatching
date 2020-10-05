@@ -41,7 +41,7 @@ def main():
 
     def decrypt():
         bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
-        f = open(decryptFile, "r", encoding="UTF8").readlines()
+        f = open(decryptFile, 'r', encoding='latin-1').readlines() #Added Latin 1 here too
         decryptLbl["text"] = "\n".join(f)
 
     window = tk.Tk()
@@ -93,6 +93,6 @@ def main():
 global alpha, vslImg, encryptFile, decryptFile
 alpha = 0.45
 encryptFile = "encode.png"
-decryptFile = "decrypt.txt"
+decryptFile = "decrypt.png"
 vslImg = ""
 main()

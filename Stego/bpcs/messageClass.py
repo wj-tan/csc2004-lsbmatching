@@ -29,7 +29,7 @@ class messageClass():
 
         char_list = None
 
-        file = open(self.infile, 'r').read() if os.path.isfile(
+        file = open(self.infile, 'r', encoding='latin-1').read() if os.path.isfile( #added encoding latin 1 here first
             self.infile) else self.infile
 
         char_list = [ord(c) for c in file]
