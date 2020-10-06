@@ -11,8 +11,10 @@ def runDecode(img_path,output_path):
 	default location.
 
 	"""
+	print("Decoding...")
 	decoded_image = decode(Image.open(img_path))
 	decoded_image.save(output_path)
+	print("Decoded!")
 
 def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 	"""

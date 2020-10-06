@@ -3,11 +3,9 @@ from tkinter import filedialog
 # pip install pillow
 from PIL import ImageTk, Image, ImageFile
 
+import bpcs
 from kurapan.encode import runEncode
 from kurapan.decode import runDecode
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 
 def main():
     def UploadPL(event=None):
@@ -31,9 +29,16 @@ def main():
             encode(plImgLbl["text"])
 
     def encode(payload):
+        global isImage
         actionLbl["text"] = "Encrypting... Please Wait..."
-        # bpcs.encode(vslImg, payload, encryptFile, alpha)
-        runEncode(vslImg,payload, encryptFile)
+        try:
+            Image.open(payload)
+            runEncode(vslImg, payload, encryptFile)
+            isImage = True
+        except IOError:
+            isImage = False
+            bpcs.encoderClass(vslImg, payload, encryptFile, alpha).encode()
+
         img = Image.open(encryptFile)
         width, height = img.size
         newHeight = int(height / (width / 250))
@@ -41,24 +46,31 @@ def main():
         img = ImageTk.PhotoImage(img)
         encryptedImgCanvas.image = img
         encryptedImgLbl["image"] = img
+
         actionLbl["text"] = "Encryption Done!"
         decrypt()
 
     def decrypt():
-        # bpcs.decode(encryptFile, decryptFile, alpha)
-        # f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
-        # decryptText = f.readlines()
-        # decryptLbl["text"] = "\n".join(decryptText)
-        # f.close()
-        # img = Image.frombytes(decryptFile)
-        runDecode(encryptFile, decryptFile)
-        img = Image.open(decryptFile)
-        width, height = img.size
-        newHeight = int(height / (width / 250))
-        img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(img)
-        decryptedImgCanvas.image = img
-        decryptLbl["image"] = img
+        if isImage:
+            decryptFile = "decrypt.png"
+            runDecode(encryptFile, decryptFile)
+            img = Image.open(decryptFile)
+            width, height = img.size
+            newHeight = int(height / (width / 250))
+            img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            decryptedImgCanvas.image = img
+            decryptLbl["text"] = ""
+            decryptLbl["image"] = img
+        else:
+            decryptFile = "decrypt.txt"
+            bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
+            f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
+            decryptText = f.readlines()
+            decryptLbl["image"] = ""
+            decryptLbl["text"] = "\n".join(decryptText)
+            f.close()
+
 
     window = tk.Tk()
     window.configure(background="white")
@@ -107,9 +119,8 @@ def main():
     window.mainloop()
 
 
-global alpha, vslImg, encryptFile, decryptFile
+global alpha, vslImg, encryptFile
 alpha = 0.45
 encryptFile = "encode.png"
-decryptFile = "decrypt.png"
 vslImg = ""
 main()
