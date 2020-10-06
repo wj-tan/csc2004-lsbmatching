@@ -1,8 +1,12 @@
-import bpcs
 import tkinter as tk
 from tkinter import filedialog
 # pip install pillow
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageFile
+
+from kurapan.encode import runEncode
+from kurapan.decode import runDecode
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def main():
@@ -28,7 +32,8 @@ def main():
 
     def encode(payload):
         actionLbl["text"] = "Encrypting... Please Wait..."
-        bpcs.encoderClass(vslImg, payload, encryptFile, alpha).encode()
+        # bpcs.encode(vslImg, payload, encryptFile, alpha)
+        runEncode(vslImg,payload, encryptFile)
         img = Image.open(encryptFile)
         width, height = img.size
         newHeight = int(height / (width / 250))
@@ -40,7 +45,13 @@ def main():
         decrypt()
 
     def decrypt():
-        bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
+        # bpcs.decode(encryptFile, decryptFile, alpha)
+        # f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
+        # decryptText = f.readlines()
+        # decryptLbl["text"] = "\n".join(decryptText)
+        # f.close()
+        # img = Image.frombytes(decryptFile)
+        runDecode(encryptFile, decryptFile)
         img = Image.open(decryptFile)
         width, height = img.size
         newHeight = int(height / (width / 250))
