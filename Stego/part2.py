@@ -41,8 +41,13 @@ def main():
 
     def decrypt():
         bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
-        f = open(decryptFile, 'r', encoding='latin-1').readlines() #Added Latin 1 here too
-        decryptLbl["text"] = "\n".join(f)
+        img = Image.open(decryptFile)
+        width, height = img.size
+        newHeight = int(height / (width / 250))
+        img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(img)
+        decryptedImgCanvas.image = img
+        decryptLbl["image"] = img
 
     window = tk.Tk()
     window.configure(background="white")
@@ -51,6 +56,7 @@ def main():
     mainFrame.pack(padx=20, pady=5)
     imgCanvas = tk.Canvas()
     encryptedImgCanvas = tk.Canvas()
+    decryptedImgCanvas = tk.Canvas()
     plFrame = tk.Frame(mainFrame, bg="white")
     plFrame.pack(padx=20, pady=5)
     plTextLbl = tk.Label(plFrame, text="Upload Payload: ", font="Ariel 16 normal", bg="white")
