@@ -112,7 +112,7 @@ def encode(img_visible, img_hidden):
 	width_hidden, height_hidden = img_hidden.size
 	img_visible_noOfPixel = width_visible * height_visible
 	img_hidden_noOfPixel = width_hidden * height_hidden
-	if((img_visible_noOfPixel) < img_hidden_noOfPixel * 2 + 1):
+	if((img_visible_noOfPixel) < img_hidden_noOfPixel * 2 + 2):
 		raise Exception("Cover image too small for the payload!")
 
 	hidden_image_pixels = get_binary_pixel_values(img_hidden_copy, width_hidden, height_hidden)
