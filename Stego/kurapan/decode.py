@@ -38,10 +38,11 @@ def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 		for row in range(height_visible):
 			if row == 0 and col == 0:
 				continue
-			if len(img_visible[col, row]) == 4:
-				r, g, b, a = img_visible[col, row]
+
+			if len(image[col, row]) == 4:
+				r, g, b, a = image[col, row]
 			else:
-				r, g, b = img_visible[col, row]
+				r, g, b = image[col, row]
 			r_binary, g_binary, b_binary = rgb_to_binary(r, g, b)
 			hidden_image_pixels += r_binary[4:8] + g_binary[4:8] + b_binary[4:8]
 			if idx >= pixel_count * 2:
@@ -68,7 +69,13 @@ def reconstruct_image(image_pixels, width, height):
 			r_binary = image_pixels[idx:idx+8]
 			g_binary = image_pixels[idx+8:idx+16]
 			b_binary = image_pixels[idx+16:idx+24]
-			image_copy[col, row] = (int(r_binary, 2), int(g_binary, 2), int(b_binary, 2))
+			print(r_binary,g_binary,b_binary)
+			try:
+				print(int(r_binary,2),int(g_binary,2),int(b_binary,2))
+				image_copy[col, row] = (int(r_binary, 2), int(g_binary, 2), int(b_binary, 2))
+			except:
+				print("Error: Cover Image too small")
+				print(r_binary,g_binary,b_binary)
 			idx += 24
 	return image
 	
@@ -87,7 +94,10 @@ def decode(image):
 	"""
 	image_copy = image.load()
 	width_visible, height_visible = image.size
-	r, g, b = image_copy[0, 0]
+	if len(image_copy[0, 0]) == 4:
+		r, g, b, a = image_copy[0, 0]
+	else:
+		r, g, b = image_copy[0, 0]
 	r_binary, g_binary, b_binary = rgb_to_binary(r, g, b)
 	w_h_binary = r_binary + g_binary + b_binary
 	width_hidden = int(w_h_binary[0:12], 2)
