@@ -29,14 +29,11 @@ def main():
             encode(plImgLbl["text"])
 
     def encode(payload):
-        global isImage
         actionLbl["text"] = "Encrypting... Please Wait..."
         try:
             Image.open(payload)
             runEncode(vslImg, payload, encryptFile)
-            isImage = True
         except IOError:
-            isImage = False
             bpcs.encoderClass(vslImg, payload, encryptFile, alpha).encode()
 
         img = Image.open(encryptFile)
@@ -51,7 +48,7 @@ def main():
         decrypt()
 
     def decrypt():
-        if isImage:
+        try:
             decryptFile = "decrypt.png"
             runDecode(encryptFile, decryptFile)
             img = Image.open(decryptFile)
@@ -62,7 +59,7 @@ def main():
             decryptedImgCanvas.image = img
             decryptLbl["text"] = ""
             decryptLbl["image"] = img
-        else:
+        except IOError:
             decryptFile = "decrypt.txt"
             bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
             f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
