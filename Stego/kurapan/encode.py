@@ -70,6 +70,9 @@ def change_binary_values(img_visible, hidden_image_pixels, width_visible, height
 	for col in range(width_visible):
 		for row in range(height_visible):
 			if row == 0 and col == 0:
+				img_visible[col, row] = (255, 255, 255)
+				continue
+			if row == 1 and col == 0:
 				width_hidden_binary = add_leading_zeros(bin(width_hidden)[2:], 12)
 				height_hidden_binary = add_leading_zeros(bin(height_hidden)[2:], 12)
 				w_h_binary = width_hidden_binary + height_hidden_binary
@@ -107,6 +110,11 @@ def encode(img_visible, img_hidden):
 	img_hidden_copy = img_hidden.load()
 	width_visible, height_visible = img_visible.size
 	width_hidden, height_hidden = img_hidden.size
+	img_visible_noOfPixel = width_visible * height_visible
+	img_hidden_noOfPixel = width_hidden * height_hidden
+	if((img_visible_noOfPixel) < img_hidden_noOfPixel * 2 + 1):
+		raise Exception("Cover image too small for the payload!")
+
 	hidden_image_pixels = get_binary_pixel_values(img_hidden_copy, width_hidden, height_hidden)
 	encoded_image = change_binary_values(encoded_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
 	return img_visible

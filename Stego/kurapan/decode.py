@@ -38,7 +38,8 @@ def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 		for row in range(height_visible):
 			if row == 0 and col == 0:
 				continue
-
+			if row == 1 and col == 0:
+				continue
 			if len(image[col, row]) == 4:
 				r, g, b, a = image[col, row]
 			else:
@@ -66,9 +67,9 @@ def reconstruct_image(image_pixels, width, height):
 	idx = 0
 	for col in range(width):
 		for row in range(height):
-			r_binary = image_pixels[idx:idx+8]
-			g_binary = image_pixels[idx+8:idx+16]
-			b_binary = image_pixels[idx+16:idx+24]
+			r_binary = image_pixels[idx:idx+8] # bit pos: 0-7
+			g_binary = image_pixels[idx+8:idx+16] # bit pos: 8-15
+			b_binary = image_pixels[idx+16:idx+24]# bit pos: 16-23
 			try:
 				image_copy[col, row] = (int(r_binary, 2), int(g_binary, 2), int(b_binary, 2))
 			except:
@@ -93,9 +94,13 @@ def decode(image):
 	image_copy = image.load()
 	width_visible, height_visible = image.size
 	if len(image_copy[0, 0]) == 4:
-		r, g, b, a = image_copy[0, 0]
+		firstR, firstG, firstB, a = image_copy[0, 0]
+		r, g, b, a = image_copy[0, 1]
 	else:
-		r, g, b = image_copy[0, 0]
+		firstR, firstG, firstB = image_copy[0, 0]
+		r, g, b = image_copy[0, 1]
+	if firstR != 255 or firstG != 255 and firstB != 255:
+		raise Exception("Payload is not image")
 	r_binary, g_binary, b_binary = rgb_to_binary(r, g, b)
 	w_h_binary = r_binary + g_binary + b_binary
 	width_hidden = int(w_h_binary[0:12], 2)

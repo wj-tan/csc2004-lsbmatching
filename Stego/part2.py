@@ -10,35 +10,77 @@ from kurapan.decode import runDecode
 def main():
     def UploadPL(event=None):
         filename = filedialog.askopenfilename()
-        plImgLbl["text"] = filename
-        if vslImg != "":
-            encode(plImgLbl["text"])
+        if filename == "":
+            plImgLbl["text"] = ""
+            plImgLbl["image"] = ""
+            plImgHiddenLbl["text"] = ""
+            encryptedImgLbl["image"] = ""
+            decryptLbl["image"] = ""
+            decryptLbl["text"] = ""
+            actionLbl["text"] = ""
+            return 0
+        plImgHiddenLbl["text"] = filename
+        try:
+            img = Image.open(filename)
+            width, height = img.size
+            newHeight = int(height / (width / 250))
+            img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            payloadCanvas.image = img
+            plImgLbl["image"] = img
+        except:
+            f = open(filename, 'r', encoding='latin-1')  # Added Latin 1 here too
+            payloadText = f.readlines()
+            plImgLbl["image"] = ""
+            plImgLbl["text"] = "\n".join(payloadText)
+            f.close()
+        #This thing is required for your button
+        if imgHiddenLbl["text"] != "":
+            encode()
 
     def UploadImage(event=None):
-        global vslImg
         filename = filedialog.askopenfilename()
+        if filename == "":
+            imgLbl["image"] = ""
+            imgHiddenLbl["text"] = ""
+            encryptedImgLbl["image"] = ""
+            decryptLbl["image"] = ""
+            decryptLbl["text"] = ""
+            actionLbl["text"] = ""
+            return 0
         img = Image.open(filename)
-        vslImg = filename
+        imgHiddenLbl["text"] = filename
         width, height = img.size
         newHeight = int(height / (width / 250))
         img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
         img = ImageTk.PhotoImage(img)
         imgCanvas.image = img
         imgLbl["image"] = img
-        if plImgLbl["text"] != "":
-            encode(plImgLbl["text"])
+        #This thing is required for your button
+        if plImgHiddenLbl["text"] != "":
+            encode()
 
-    def encode(payload):
+
+    def encode():
+        payload = plImgHiddenLbl["text"]
+        vslImg = imgHiddenLbl["text"]
         actionLbl["text"] = "Encrypting... Please Wait..."
+        actionLbl["fg"] = "black"
         try:
             Image.open(payload)
-            runEncode(vslImg, payload, encryptFile)
-            isImage = True
+            runEncode(vslImg, payload, ENCRYPTFILE)
         except IOError:
-            bpcs.encoderClass(vslImg, payload, encryptFile, alpha).encode()
-            isImage = False
+            bpcs.encoderClass(vslImg, payload, ENCRYPTFILE, ALPHA).encode()
+        except Exception as e:
+            print(e)
+            actionLbl["text"] = e
+            actionLbl["fg"] = "red"
+            encryptedImgLbl["image"] = ""
+            decryptLbl["image"] = ""
+            decryptLbl["text"] = ""
+            return 0
 
-        img = Image.open(encryptFile)
+        img = Image.open(ENCRYPTFILE)
         width, height = img.size
         newHeight = int(height / (width / 250))
         img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
@@ -46,24 +88,24 @@ def main():
         encryptedImgCanvas.image = img
         encryptedImgLbl["image"] = img
 
-        actionLbl["text"] = "Encryption Done!"
-        decrypt(isImage)
+        actionLbl["text"] = "Steganography Done!"
+        actionLbl["fg"] = "black"
+        decrypt()
 
-    def decrypt(isImage):
-        if isImage:
+    def decrypt():
+        try:
             decryptFile = "decrypt.png"
-            runDecode(encryptFile, decryptFile)
+            runDecode(ENCRYPTFILE, decryptFile)
             img = Image.open(decryptFile)
             width, height = img.size
             newHeight = int(height / (width / 250))
             img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
             img = ImageTk.PhotoImage(img)
             decryptedImgCanvas.image = img
-            decryptLbl["text"] = ""
             decryptLbl["image"] = img
-        else:
+        except Exception as e:
             decryptFile = "decrypt.txt"
-            bpcs.decoderClass(encryptFile, decryptFile, alpha).decode()
+            bpcs.decoderClass(ENCRYPTFILE, decryptFile, ALPHA).decode()
             f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
             decryptText = f.readlines()
             decryptLbl["image"] = ""
@@ -77,6 +119,7 @@ def main():
     mainFrame = tk.Frame(window, bg="white")
     mainFrame.pack(padx=20, pady=5)
     imgCanvas = tk.Canvas()
+    payloadCanvas = tk.Canvas()
     encryptedImgCanvas = tk.Canvas()
     decryptedImgCanvas = tk.Canvas()
     plFrame = tk.Frame(mainFrame, bg="white")
@@ -85,8 +128,9 @@ def main():
     plTextLbl.pack(side=tk.LEFT, padx=20, pady=5)
     plbtn = tk.Button(plFrame, text='Upload', command=UploadPL)
     plbtn.pack(side=tk.RIGHT, padx=20, pady=5)
-    plImgLbl = tk.Label(plFrame, bg="white")
+    plImgLbl = tk.Label(plFrame)
     plImgLbl.pack()
+    plImgHiddenLbl = tk.Label(plFrame)
 
     imgFrame = tk.Frame(mainFrame, bg="white")
     imgFrame.pack(padx=20, pady=5)
@@ -101,6 +145,7 @@ def main():
     imgbtn.pack(side=tk.RIGHT, padx=20, pady=5)
     imgLbl = tk.Label(uploadImgFrame, bg="white")
     imgLbl.pack()
+    imgHiddenLbl = tk.Label(uploadImgFrame)
 
     encryptedImgFrame = tk.Frame(imgFrame, bg="white")
     encryptedImgFrame.pack(side=tk.RIGHT, padx=20, pady=5)
@@ -108,18 +153,18 @@ def main():
     encryptedTextLbl.pack(padx=20, pady=5)
     encryptedImgLbl = tk.Label(encryptedImgFrame, bg="white")
     encryptedImgLbl.pack()
-    actionLbl = tk.Label(mainFrame, bg="white")
-    actionLbl.pack(padx=20, pady=5)
     plTextLbl = tk.Label(mainFrame, text="Payload", font="Ariel 16 underline", bg="white")
     plTextLbl.pack(padx=20, pady=5)
     decryptLbl = tk.Label(mainFrame)
     decryptLbl.pack(padx=20, pady=5)
+    actionLbl = tk.Label(mainFrame, font="Ariel 16", bg="white")
+    actionLbl.pack(padx=20, pady=5)
 
     window.mainloop()
 
 
-global alpha, vslImg, encryptFile
-alpha = 0.45
-encryptFile = "encode.png"
+global ALPHA, ENCRYPTFILE
+ALPHA = 0.45
+ENCRYPTFILE = "encode.png"
 vslImg = ""
 main()
