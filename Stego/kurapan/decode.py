@@ -69,13 +69,11 @@ def reconstruct_image(image_pixels, width, height):
 			r_binary = image_pixels[idx:idx+8]
 			g_binary = image_pixels[idx+8:idx+16]
 			b_binary = image_pixels[idx+16:idx+24]
-			print(r_binary,g_binary,b_binary)
 			try:
-				print(int(r_binary,2),int(g_binary,2),int(b_binary,2))
 				image_copy[col, row] = (int(r_binary, 2), int(g_binary, 2), int(b_binary, 2))
 			except:
 				print("Error: Cover Image too small")
-				print(r_binary,g_binary,b_binary)
+				return image
 			idx += 24
 	return image
 	
