@@ -38,7 +38,10 @@ def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 		for row in range(height_visible):
 			if row == 0 and col == 0:
 				continue
-			r, g, b = image[col, row]
+			if len(img_visible[col, row]) == 4:
+				r, g, b, a = img_visible[col, row]
+			else:
+				r, g, b = img_visible[col, row]
 			r_binary, g_binary, b_binary = rgb_to_binary(r, g, b)
 			hidden_image_pixels += r_binary[4:8] + g_binary[4:8] + b_binary[4:8]
 			if idx >= pixel_count * 2:
