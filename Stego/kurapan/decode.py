@@ -4,17 +4,27 @@ import os, sys
 from PIL import Image
 from kurapan.utils import rgb_to_binary
 
-def runDecode(img_path,output_path):
+def runDecode(img_path):
 	"""
 	Opens an image which contains information of a hidden image,
 	recovers the hidden image and saves it in a specified or
 	default location.
 
 	"""
+
 	print("Decoding...")
-	decoded_image = decode(Image.open(img_path))
-	decoded_image.save(output_path)
+	isImage ,decoded = decode(Image.open(img_path))
+	print(isImage)
+	if isImage:
+		decoded.save('decrypt.png')
+		return isImage, 'decrypt.png'
+	else:
+		f = open('decrypt.txt', 'w+') # Output the extracted payload write it in text file
+		f.write(decoded)
+		f.close()
+		return isImage, 'decrypt.txt'
 	print("Decoded!")
+
 
 def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 	"""
@@ -39,6 +49,8 @@ def extract_hidden_pixels(image, width_visible, height_visible, pixel_count):
 			if row == 0 and col == 0:
 				continue
 			if row == 1 and col == 0:
+				continue
+			if row == 2 and col == 0:
 				continue
 			if len(image[col, row]) == 4:
 				r, g, b, a = image[col, row]
@@ -77,7 +89,15 @@ def reconstruct_image(image_pixels, width, height):
 				return image
 			idx += 24
 	return image
-	
+
+def reconstruct_text(text_pixels,noOfChar):
+	idx = 0
+	payload = ""
+	for c in range(noOfChar):
+		payload += chr(int(text_pixels[idx:idx+8],2))
+		idx += 8
+	return payload
+
 def decode(image):
 	"""
 	Loads the image to recover a hidden image from, retrieves the information about the
@@ -95,17 +115,32 @@ def decode(image):
 	width_visible, height_visible = image.size
 	if len(image_copy[0, 0]) == 4:
 		firstR, firstG, firstB, a = image_copy[0, 0]
-		r, g, b, a = image_copy[0, 1]
+		secR, secG, secB, a = image_copy[0, 1]
+		r, g, b, a = image_copy[0, 2]
 	else:
 		firstR, firstG, firstB = image_copy[0, 0]
-		r, g, b = image_copy[0, 1]
-	if firstR != 255 or firstG != 255 and firstB != 255:
-		raise Exception("Payload is not image")
+		secR, secG, secB = image_copy[0, 1]
+		r, g, b = image_copy[0, 2]
+
 	r_binary, g_binary, b_binary = rgb_to_binary(r, g, b)
 	w_h_binary = r_binary + g_binary + b_binary
-	width_hidden = int(w_h_binary[0:12], 2)
-	height_hidden = int(w_h_binary[12:24], 2)
-	pixel_count = width_hidden * height_hidden
-	hidden_image_pixels = extract_hidden_pixels(image_copy, width_visible, height_visible, pixel_count)
-	decoded_image = reconstruct_image(hidden_image_pixels, width_hidden, height_hidden)
-	return decoded_image
+	#is image
+	print(firstR, firstG, firstB,secR, secG, secB)
+	if firstR == 255 and firstG == 255 and firstB == 255 and secR == 0 and secG == 0 and secB == 0:
+
+		width_hidden = int(w_h_binary[0:12], 2)
+		height_hidden = int(w_h_binary[12:24], 2)
+		pixel_count = width_hidden * height_hidden
+		hidden_image_pixels = extract_hidden_pixels(image_copy, width_visible, height_visible, pixel_count)
+		decoded= reconstruct_image(hidden_image_pixels, width_hidden, height_hidden)
+		return True,decoded
+	#is txt
+	elif firstR == 0 and firstG == 0 and firstB == 0 and secR == 255 and secG == 255 and secB == 255:
+		noOfChar = int(w_h_binary, 2)
+		hidden_text_pixels = extract_hidden_pixels(image_copy, width_visible, height_visible, noOfChar)
+		decoded = reconstruct_text(hidden_text_pixels,noOfChar)
+		return False, decoded
+	else:
+		raise Exception("Image is not encrypted")
+
+	return decoded

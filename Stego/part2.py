@@ -73,10 +73,12 @@ def main():
         #if is image
         try:
             Image.open(payload)
-            runEncode(vslImg, payload, ENCRYPTFILE)
+            runEncode(vslImg, payload, ENCRYPTFILE,True)
+
         #if not image
         except IOError:
-            bpcs.encoderClass(vslImg, payload, ENCRYPTFILE, ALPHA).encode()
+            runEncode(vslImg, payload, ENCRYPTFILE, False)
+           # bpcs.encoderClass(vslImg, payload, ENCRYPTFILE, ALPHA).encode()
         except Exception as e:
             print(e)
             actionLbl["text"] = e
@@ -100,31 +102,36 @@ def main():
 
     def decrypt():
         try:
-            decryptFile = "decrypt.png"
-            runDecode(ENCRYPTFILE, decryptFile)
-            img = Image.open(decryptFile)
-            width, height = img.size
-            newHeight = int(height / (width / 250))
-            img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(img)
-            decryptedImgCanvas.image = img
-            decryptLbl["image"] = img
+            isImage, decryptFile = runDecode(ENCRYPTFILE)
+            if isImage:
+                img = Image.open(decryptFile)
+                width, height = img.size
+                newHeight = int(height / (width / 250))
+                img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
+                img = ImageTk.PhotoImage(img)
+                decryptedImgCanvas.image = img
+                decryptLbl["image"] = img
+            else:
+                f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
+                decryptText = f.readlines()
+                decryptLbl["image"] = ""
+                decryptLbl["text"] = "\n".join(decryptText)
         except Exception as e:
-            decryptFile = "decrypt.txt"
-            bpcs.decoderClass(ENCRYPTFILE, decryptFile, ALPHA).decode()
-            f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
-            decryptText = f.readlines()
+            print(e)
+            actionLbl["text"] = e
+            actionLbl["fg"] = "red"
+            encryptedImgLbl["image"] = ""
             decryptLbl["image"] = ""
-            decryptLbl["text"] = "\n".join(decryptText)
-            f.close()
+            decryptLbl["text"] = ""
+            return 0
+
+
     def processImage():
         if imgHiddenLbl["text"] != "" and plImgHiddenLbl["text"] != "":
             encode()
         else:
             actionLbl["text"] = "Please upload a text file or an image"
             actionLbl["fg"] = "red"
-
-
 
     window = tk.Tk()
     window.configure(background="white")
@@ -144,6 +151,7 @@ def main():
     plImgLbl = tk.Label(plFrame)
     plImgLbl.pack()
     plImgHiddenLbl = tk.Label(plFrame)
+    plFileType = tk.Label(plFrame)
 
     imgFrame = tk.Frame(mainFrame, bg="white")
     imgFrame.pack(padx=20, pady=5)

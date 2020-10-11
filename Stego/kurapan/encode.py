@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
+import math
 import os, sys
 from PIL import Image
 from kurapan.utils import rgb_to_binary, add_leading_zeros
 
-def runEncode(img_visible_path,img_hidden_path,output_path):
+def runEncode(img_visible_path,img_hidden_path,output_path,isImage):
 	"""
 	Opens two specified images, an image we want to conceal and an image we want to use for concealing,
 	hides the image information in the binary pixel values of the other image and saves
@@ -14,12 +14,29 @@ def runEncode(img_visible_path,img_hidden_path,output_path):
 	hidden + 1)
 
 	"""
-	print("Encoding...")
 	img_visible = Image.open(img_visible_path)
-	img_hidden = Image.open(img_hidden_path)
-	encoded_image = encode(img_visible, img_hidden)
-	encoded_image.save(output_path)
+	print("Encoding...")
+	if isImage:
+		img_hidden = Image.open(img_hidden_path)
+		encoded_image = encodeImage(img_visible, img_hidden)
+		encoded_image.save(output_path)
+	else:
+		print(img_hidden_path)
+		f = open(img_hidden_path, 'r', encoding='latin-1')
+		payloadText = f.read()
+		encoded_text= encodeText(img_visible,payloadText)
+		encoded_text.save(output_path)
+
 	print("Encoded")
+def convert_text_to_binary(payload):
+
+	iBlist = [add_leading_zeros(bin(ord(b))[2:], 8) for b in payload]  # Convert each character into ASCI representation in int
+	# print(iBlist)
+	combinedBin ="".join(iBlist)
+	# Converts each ASCI character of the payload into binary
+	print(combinedBin)
+
+	return combinedBin
 
 def get_binary_pixel_values(img, width, height):
 	"""
@@ -46,7 +63,7 @@ def get_binary_pixel_values(img, width, height):
 			hidden_image_pixels += r_binary + g_binary + b_binary
 	return hidden_image_pixels
 
-def change_binary_values(img_visible, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden):
+def change_binary_values(img_visible, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden,isImage,noOfChar):
 	"""
 	Replaces the 4 least significant bits of a subset of pixels in an image with bits representing a sequence of binary
 	values of RGB channels of all pixels of the image to be concealed.
@@ -70,16 +87,29 @@ def change_binary_values(img_visible, hidden_image_pixels, width_visible, height
 	for col in range(width_visible):
 		for row in range(height_visible):
 			if row == 0 and col == 0:
-				img_visible[col, row] = (255, 255, 255)
+				if isImage:
+
+					img_visible[col, row] = (255, 255, 255)
+				else:
+
+					img_visible[col, row] = (0, 0, 0)
 				continue
 			if row == 1 and col == 0:
-				img_visible[col, row] = (0, 0, 0)
+				if not isImage:
+					img_visible[col, row] = (255, 255, 255)
+				else:
+					img_visible[col, row] = (0, 0, 0)
 				continue
+
 			if row == 2 and col == 0:
-				width_hidden_binary = add_leading_zeros(bin(width_hidden)[2:], 12)
-				height_hidden_binary = add_leading_zeros(bin(height_hidden)[2:], 12)
-				w_h_binary = width_hidden_binary + height_hidden_binary
-				img_visible[col, row] = (int(w_h_binary[0:8], 2), int(w_h_binary[8:16], 2), int(w_h_binary[16:24], 2))
+				if isImage:
+					width_hidden_binary = add_leading_zeros(bin(width_hidden)[2:], 12)
+					height_hidden_binary = add_leading_zeros(bin(height_hidden)[2:], 12)
+					w_h_binary = width_hidden_binary + height_hidden_binary
+					img_visible[col, row] = (int(w_h_binary[0:8], 2), int(w_h_binary[8:16], 2), int(w_h_binary[16:24], 2))
+				else:
+					binaryPixelCount = add_leading_zeros(bin(noOfChar)[2:], 24)
+					img_visible[col, row] = (int(binaryPixelCount[0:8], 2), int(binaryPixelCount[8:16], 2), int(binaryPixelCount[16:24], 2))
 				continue
 			if len(img_visible[col, row]) == 4:
 				r, g, b, a = img_visible[col, row]
@@ -96,7 +126,21 @@ def change_binary_values(img_visible, hidden_image_pixels, width_visible, height
 	# can never be reached, but let's return the image anyway
 	return img_visible
 
-def encode(img_visible, img_hidden):
+
+#convert the text to binary
+#get length of binary text
+#divide by 8
+def encodeText(img_visible, payload):
+	cover_image = img_visible.load()
+	width_visible, height_visible = img_visible.size
+	img_visible_noOfPixel = width_visible * height_visible
+	if img_visible_noOfPixel < len(payload) * 2 / 3 + 2:
+		raise Exception("Cover image too small for the payload!")
+	binary = convert_text_to_binary(payload)
+	noOfChar = len(payload)
+	change_binary_values(cover_image, binary, width_visible, height_visible, 0, 0,False,noOfChar)
+	return img_visible
+def encodeImage(img_visible, img_hidden):
 	"""
 	Loads the image to be hidden and the image used for hiding and conceals the pixel information from one image
 	in the other one.
@@ -115,11 +159,11 @@ def encode(img_visible, img_hidden):
 	width_hidden, height_hidden = img_hidden.size
 	img_visible_noOfPixel = width_visible * height_visible
 	img_hidden_noOfPixel = width_hidden * height_hidden
-	if((img_visible_noOfPixel) < img_hidden_noOfPixel * 2 + 2):
+	if img_visible_noOfPixel < img_hidden_noOfPixel * 2 + 2:
 		raise Exception("Cover image too small for the payload!")
 
 	hidden_image_pixels = get_binary_pixel_values(img_hidden_copy, width_hidden, height_hidden)
-	cover_image = change_binary_values(cover_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
+	change_binary_values(cover_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden,True, 0)
 	return img_visible
 
 
