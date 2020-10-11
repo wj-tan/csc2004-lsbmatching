@@ -14,11 +14,11 @@ def main():
             plImgLbl["text"] = ""
             plImgLbl["image"] = ""
             plImgHiddenLbl["text"] = ""
-            encryptedImgLbl["image"] = ""
-            decryptLbl["image"] = ""
-            decryptLbl["text"] = ""
-            actionLbl["text"] = ""
             return 0
+        encryptedImgLbl["image"] = ""
+        decryptLbl["image"] = ""
+        decryptLbl["text"] = ""
+        actionLbl["text"] = ""
         plImgHiddenLbl["text"] = filename
         try:
             img = Image.open(filename)
@@ -28,26 +28,29 @@ def main():
             img = ImageTk.PhotoImage(img)
             payloadCanvas.image = img
             plImgLbl["image"] = img
+            actionLbl["text"] = ""
         except:
             f = open(filename, 'r', encoding='latin-1')  # Added Latin 1 here too
             payloadText = f.readlines()
             plImgLbl["image"] = ""
             plImgLbl["text"] = "\n".join(payloadText)
+            actionLbl["text"] = ""
             f.close()
         #This thing is required for your button
-        if imgHiddenLbl["text"] != "":
-            encode()
+        # if imgHiddenLbl["text"] != "":
+        #     encode()
 
     def UploadImage(event=None):
         filename = filedialog.askopenfilename()
         if filename == "":
             imgLbl["image"] = ""
             imgHiddenLbl["text"] = ""
-            encryptedImgLbl["image"] = ""
-            decryptLbl["image"] = ""
-            decryptLbl["text"] = ""
             actionLbl["text"] = ""
             return 0
+        encryptedImgLbl["image"] = ""
+        decryptLbl["image"] = ""
+        decryptLbl["text"] = ""
+
         img = Image.open(filename)
         imgHiddenLbl["text"] = filename
         width, height = img.size
@@ -56,9 +59,10 @@ def main():
         img = ImageTk.PhotoImage(img)
         imgCanvas.image = img
         imgLbl["image"] = img
+        actionLbl["text"] = ""
         #This thing is required for your button
-        if plImgHiddenLbl["text"] != "":
-            encode()
+        # if plImgHiddenLbl["text"] != "":
+        #     encode()
 
 
     def encode():
@@ -66,9 +70,11 @@ def main():
         vslImg = imgHiddenLbl["text"]
         actionLbl["text"] = "Encrypting... Please Wait..."
         actionLbl["fg"] = "black"
+        #if is image
         try:
             Image.open(payload)
             runEncode(vslImg, payload, ENCRYPTFILE)
+        #if not image
         except IOError:
             bpcs.encoderClass(vslImg, payload, ENCRYPTFILE, ALPHA).encode()
         except Exception as e:
@@ -111,6 +117,13 @@ def main():
             decryptLbl["image"] = ""
             decryptLbl["text"] = "\n".join(decryptText)
             f.close()
+    def processImage():
+        if imgHiddenLbl["text"] != "" and plImgHiddenLbl["text"] != "":
+            encode()
+        else:
+            actionLbl["text"] = "Please upload a text file or an image"
+            actionLbl["fg"] = "red"
+
 
 
     window = tk.Tk()
@@ -145,6 +158,9 @@ def main():
     imgbtn.pack(side=tk.RIGHT, padx=20, pady=5)
     imgLbl = tk.Label(uploadImgFrame, bg="white")
     imgLbl.pack()
+    plProcessButton = tk.Button(mainFrame, text='Process', command=processImage)
+    plProcessButton.pack(side=tk.TOP, padx=20, pady=5)
+
     imgHiddenLbl = tk.Label(uploadImgFrame)
 
     encryptedImgFrame = tk.Frame(imgFrame, bg="white")

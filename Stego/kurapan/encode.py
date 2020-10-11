@@ -73,6 +73,9 @@ def change_binary_values(img_visible, hidden_image_pixels, width_visible, height
 				img_visible[col, row] = (255, 255, 255)
 				continue
 			if row == 1 and col == 0:
+				img_visible[col, row] = (0, 0, 0)
+				continue
+			if row == 2 and col == 0:
 				width_hidden_binary = add_leading_zeros(bin(width_hidden)[2:], 12)
 				height_hidden_binary = add_leading_zeros(bin(height_hidden)[2:], 12)
 				w_h_binary = width_hidden_binary + height_hidden_binary
@@ -106,7 +109,7 @@ def encode(img_visible, img_hidden):
 	    An RGB image which is supposed to be not very different visually from img_visible, but contains all the information
 	    necessary to recover an identical copy of the image we want to hide.
 	"""
-	encoded_image = img_visible.load()
+	cover_image = img_visible.load()
 	img_hidden_copy = img_hidden.load()
 	width_visible, height_visible = img_visible.size
 	width_hidden, height_hidden = img_hidden.size
@@ -116,7 +119,7 @@ def encode(img_visible, img_hidden):
 		raise Exception("Cover image too small for the payload!")
 
 	hidden_image_pixels = get_binary_pixel_values(img_hidden_copy, width_hidden, height_hidden)
-	encoded_image = change_binary_values(encoded_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
+	encoded_image = change_binary_values(cover_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
 	return img_visible
 
 
