@@ -119,7 +119,7 @@ def encode(img_visible, img_hidden):
 		raise Exception("Cover image too small for the payload!")
 
 	hidden_image_pixels = get_binary_pixel_values(img_hidden_copy, width_hidden, height_hidden)
-	encoded_image = change_binary_values(cover_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
+	cover_image = change_binary_values(cover_image, hidden_image_pixels, width_visible, height_visible, width_hidden, height_hidden)
 	return img_visible
 
 
