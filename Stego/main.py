@@ -14,7 +14,6 @@ def extract():
     bitval=0
     stopcount=0 #variable to keep track of whether the stopping criteria has been reached
 
-
     for i in range(J.shape[0]): #for pixel in image row
         if (I[i, 0, 0] == '-'): #if not a valid image pixel
             break      #stop decoding
@@ -42,7 +41,7 @@ def extract():
     f.close()   #close the file
 
 #open and convert payload data to bits
-bits=[]
+bits=[] #for storing binary of converted ascii character
 f=open('payload2.txt', 'r') #open payload file to read
 payload = f.read() + "======" #adds a stopping criteria
 blist = [ord(b) for b in payload] #converts payload2.txt characters plus stopping criteria into ascii and put into list
@@ -54,7 +53,7 @@ for b in blist: #for each of the coverted ascii character
 I = np.asarray(cv2.imread('plane.png'))
 
 #encoding
-sign=[1,-1]
+sign=[1,-1] #bit sign for random function
 idx=0
 for i in range(I.shape[0]): #for pixel in image row
     for j in range(I.shape[1]): #for pixel in image column
@@ -68,9 +67,9 @@ for i in range(I.shape[0]): #for pixel in image row
                 idx+=1  #increment index by 1
 
 #output stego image after encode
-cv2.imwrite('plane_stego.png', I)
+cv2.imwrite('plane_stego.png', I)   #write to new image file
 
 #run decode function
 print("Extracting ... ")
-extract()
+extract()   #run extract function
 print("Completed")
