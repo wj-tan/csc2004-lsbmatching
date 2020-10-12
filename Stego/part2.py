@@ -1,78 +1,81 @@
-import tkinter as tk
-from tkinter import filedialog
+import tkinter as tk    #tkinter python user interface
+from tkinter import filedialog  #import filedialog module
 # pip install pillow
-from PIL import ImageTk, Image, ImageFile
+from PIL import ImageTk, Image, ImageFile #import modules for image manipulation functions
 
-import bpcs
-from kurapan.encode import runEncode
-from kurapan.decode import runDecode
+from kurapan.encode import runEncode    #use Kurapan Hide image in image library for enconding image
+from kurapan.decode import runDecode    #use Kurapan Hide image in image library for decoding image
 
 def main():
+    #function to upload payload image
     def UploadPL(event=None):
         encryptedImgLbl["image"] = ""
         decryptLbl["image"] = ""
         decryptLbl["text"] = ""
         actionLbl["text"] = ""
-        filename = filedialog.askopenfilename()
+        filename = filedialog.askopenfilename() #UI prompt to upload file
         if filename == "":
             plImgLbl["text"] = ""
             plImgLbl["image"] = ""
             plImgHiddenLbl["text"] = ""
             return 0
-        plImgHiddenLbl["text"] = filename
+        plImgHiddenLbl["text"] = filename   #store payload to be encoded
+        #for image payload
         try:
-            img = Image.open(filename)
-            width, height = img.size
-            newHeight = int(height / (width / 250))
-            img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(img)
-            payloadCanvas.image = img
-            plImgLbl["image"] = img
+            img = Image.open(filename)  #open payload image
+            width, height = img.size    #get width and height of image
+            newHeight = int(height / (width / 250))  #resize image for UI
+            img = img.resize((250, int(newHeight)), Image.ANTIALIAS)  #fit resized image to the UI
+            img = ImageTk.PhotoImage(img)   #initialize image for UI
+            payloadCanvas.image = img  #set image canvas for UI
+            plImgLbl["image"] = img   #display payload image in UI
             actionLbl["text"] = ""
+        #for text payload
         except:
-            f = open(filename, 'r', encoding='latin-1')  # Added Latin 1 here too
-            payloadText = f.readlines()
+            f = open(filename, 'r', encoding='latin-1')  # open text file
+            payloadText = f.readlines() #read payload text
             plImgLbl["image"] = ""
-            plImgLbl["text"] = "\n".join(payloadText)
+            plImgLbl["text"] = "\n".join(payloadText) #display payload text in UI
             actionLbl["text"] = ""
-            f.close()
+            f.close()   #close text file
 
+    #function to upload cover image
     def UploadImage(event=None):
         encryptedImgLbl["image"] = ""
         decryptLbl["image"] = ""
         decryptLbl["text"] = ""
         actionLbl["text"] = ""
-        filename = filedialog.askopenfilename()
+        filename = filedialog.askopenfilename() #UI prompt to upload file
         if filename == "":
             imgLbl["image"] = ""
             imgHiddenLbl["text"] = ""
             actionLbl["text"] = ""
             return 0
 
-        img = Image.open(filename)
-        imgHiddenLbl["text"] = filename
-        width, height = img.size
-        newHeight = int(height / (width / 250))
-        img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(img)
-        imgCanvas.image = img
-        imgLbl["image"] = img
+        img = Image.open(filename)  #open cover image
+        imgHiddenLbl["text"] = filename #store cover image for encoding
+        width, height = img.size   #get width and height of image
+        newHeight = int(height / (width / 250))  #resize image for UI
+        img = img.resize((250, int(newHeight)), Image.ANTIALIAS) #fit resized image to the UI
+        img = ImageTk.PhotoImage(img)   #initialize image for UI
+        imgCanvas.image = img   #set image canvas for UI
+        imgLbl["image"] = img   #display cover image in UI
         actionLbl["text"] = ""
 
+    #function to encode payload into image and display encoded image
     def encode():
-        payload = plImgHiddenLbl["text"]
-        vslImg = imgHiddenLbl["text"]
-        actionLbl["text"] = "Encrypting... Please Wait..."
-        actionLbl["fg"] = "black"
-        #if is image
+        payload = plImgHiddenLbl["text"]    #access payload from UploadPL function
+        vslImg = imgHiddenLbl["text"]   #access cover image from UploadImage function
+        actionLbl["text"] = "Encrypting... Please Wait..."   #display encrypting in progress message
+        actionLbl["fg"] = "black" #set text colour for the image
+        #for image payload
         try:
-            Image.open(payload)
-            runEncode(vslImg, payload, ENCRYPTFILE,True)
-
-        #if not image
+            Image.open(payload) #open the image payload
+            runEncode(vslImg, payload, ENCRYPTFILE,True)    #run encode function from the Kurapan Hide image in image library
+        #for text payload
         except IOError:
-            runEncode(vslImg, payload, ENCRYPTFILE, False)
-           # bpcs.encoderClass(vslImg, payload, ENCRYPTFILE, ALPHA).encode()
+            runEncode(vslImg, payload, ENCRYPTFILE, False)    #run encode function from the Kurapan Hide image in image library
+        #if cover image is too small for the payload, output error message
         except Exception as e:
             print(e)
             actionLbl["text"] = e
@@ -82,34 +85,37 @@ def main():
             decryptLbl["text"] = ""
             return 0
 
-        img = Image.open(ENCRYPTFILE)
-        width, height = img.size
-        newHeight = int(height / (width / 250))
-        img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(img)
-        encryptedImgCanvas.image = img
-        encryptedImgLbl["image"] = img
+        img = Image.open(ENCRYPTFILE)  #open encoded image
+        width, height = img.size   #get width and height of image
+        newHeight = int(height / (width / 250))  #resize image for UI
+        img = img.resize((250, int(newHeight)), Image.ANTIALIAS) #fit resized image to the UI
+        img = ImageTk.PhotoImage(img)   #initialize image for UI
+        encryptedImgCanvas.image = img  #set image canvas for UI
+        encryptedImgLbl["image"] = img   #display encoded image in UI
 
-        actionLbl["text"] = "Steganography Done!"
-        actionLbl["fg"] = "black"
+        actionLbl["text"] = "Steganography Done!"   #display success message
+        actionLbl["fg"] = "black" #set text colour for the image
         decrypt()
 
+    #function to decode encoded image and display payload
     def decrypt():
+        #for image payload
         try:
-            isImage, decryptFile = runDecode(ENCRYPTFILE)
+            isImage, decryptFile = runDecode(ENCRYPTFILE)   #run decode function from the Kurapan Hide image in image library 
             if isImage:
-                img = Image.open(decryptFile)
-                width, height = img.size
-                newHeight = int(height / (width / 250))
-                img = img.resize((250, int(newHeight)), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(img)
-                decryptedImgCanvas.image = img
-                decryptLbl["image"] = img
+                img = Image.open(decryptFile)  #open decrypted image file
+                width, height = img.size   #get width and height of image
+                newHeight = int(height / (width / 250))  #resize image for UI
+                img = img.resize((250, int(newHeight)), Image.ANTIALIAS) #fit resized image to the UI
+                img = ImageTk.PhotoImage(img)   #initialize image for UI
+                decryptedImgCanvas.image = img  #set image canvas for UI
+                decryptLbl["image"] = img   #display decrypted payload image in UI
+            #for text payload
             else:
-                f = open(decryptFile, 'r', encoding='latin-1')  # Added Latin 1 here too
-                decryptText = f.readlines()
+                f = open(decryptFile, 'r', encoding='latin-1')  #open decrypted payload file
+                decryptText = f.readlines() #output payload lines
                 decryptLbl["image"] = ""
-                decryptLbl["text"] = "\n".join(decryptText)
+                decryptLbl["text"] = "\n".join(decryptText) #display decrypted payload text in UI
         except Exception as e:
             print(e)
             actionLbl["text"] = e
@@ -119,14 +125,15 @@ def main():
             decryptLbl["text"] = ""
             return 0
 
-
+    #function for image processing
     def processImage():
-        if imgHiddenLbl["text"] != "" and plImgHiddenLbl["text"] != "":
-            encode()
+        if imgHiddenLbl["text"] != "" and plImgHiddenLbl["text"] != "": #if cover image and payload files are not empty
+            encode()    #run encode function
         else:
-            actionLbl["text"] = "Please upload a text file or an image"
-            actionLbl["fg"] = "red"
+            actionLbl["text"] = "Please upload a valid text file or an image" #display error message if uploaded file is not a text or image file
+            actionLbl["fg"] = "red" #set text colour for the image
 
+    #Styling parameters for UI
     window = tk.Tk()
     window.configure(background="white")
     window.title("Main Menu")
@@ -183,6 +190,6 @@ def main():
 
 global ALPHA, ENCRYPTFILE
 ALPHA = 0.45
-ENCRYPTFILE = "encode.png"
+ENCRYPTFILE = "encode.png"  #file name for saving the encoded file
 vslImg = ""
 main()
