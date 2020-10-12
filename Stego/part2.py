@@ -9,16 +9,16 @@ from kurapan.decode import runDecode
 
 def main():
     def UploadPL(event=None):
+        encryptedImgLbl["image"] = ""
+        decryptLbl["image"] = ""
+        decryptLbl["text"] = ""
+        actionLbl["text"] = ""
         filename = filedialog.askopenfilename()
         if filename == "":
             plImgLbl["text"] = ""
             plImgLbl["image"] = ""
             plImgHiddenLbl["text"] = ""
             return 0
-        encryptedImgLbl["image"] = ""
-        decryptLbl["image"] = ""
-        decryptLbl["text"] = ""
-        actionLbl["text"] = ""
         plImgHiddenLbl["text"] = filename
         try:
             img = Image.open(filename)
@@ -36,20 +36,18 @@ def main():
             plImgLbl["text"] = "\n".join(payloadText)
             actionLbl["text"] = ""
             f.close()
-        #This thing is required for your button
-        # if imgHiddenLbl["text"] != "":
-        #     encode()
 
     def UploadImage(event=None):
+        encryptedImgLbl["image"] = ""
+        decryptLbl["image"] = ""
+        decryptLbl["text"] = ""
+        actionLbl["text"] = ""
         filename = filedialog.askopenfilename()
         if filename == "":
             imgLbl["image"] = ""
             imgHiddenLbl["text"] = ""
             actionLbl["text"] = ""
             return 0
-        encryptedImgLbl["image"] = ""
-        decryptLbl["image"] = ""
-        decryptLbl["text"] = ""
 
         img = Image.open(filename)
         imgHiddenLbl["text"] = filename
@@ -60,10 +58,6 @@ def main():
         imgCanvas.image = img
         imgLbl["image"] = img
         actionLbl["text"] = ""
-        #This thing is required for your button
-        # if plImgHiddenLbl["text"] != "":
-        #     encode()
-
 
     def encode():
         payload = plImgHiddenLbl["text"]

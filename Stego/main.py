@@ -5,103 +5,72 @@ import cv2
 import numpy as np
 import random
 
-# Soln
-# The problem was that there was no stopping criteria hence the algorithm continued to decode beyond the payload data
-# Line 30, 31, 49
-
-# This method is for extracting the payload message from the stego object
+#decode
 def extract():
-    J = cv2.imread('stego.png') # Open the stego object
-    f = open('output_payload.txt', 'w+', errors="ignore") # Output the extracted payload write it in text file
+    J=cv2.imread('plane_stego.png') #open stego encoded image
+    f = open('output_payload.txt', 'w+', errors="ignore")   #output payload file
 
     bitidx=0
     bitval=0
-    count=0
-    for i in range(J.shape[0]): # Number of rows in stego.png
-        if (I[i, 0, 0] == '-'):
-            break
-        for j in range(J.shape[1]): # Number of columns in stego.png
-            if (I[i, j, 0] == '-'):
-                break
-            for k in range(3):
-                if (I[i, j, k] == '-'):
+    stopcount=0 #variable to keep track of whether the stopping criteria has been reached
+
+
+    for i in range(J.shape[0]): #for pixel in image row
+        if (I[i, 0, 0] == '-'): #if not a valid image pixel
+            break      #stop decoding
+        for j in range(J.shape[1]): #for pixel in image column
+            if (I[i, j, 0] == '-'): #if not a valid image pixel
+                break      #stop decoding
+            for k in range(3):  #for r, g, b in pixel
+                if (I[i, j, k] == '-'): #if not a valid image pixel
                     break
-                if bitidx == 8:
-                    #Soln
-                    if bitval == 61: # 61 is the ASCI for '=' which we set as the stopping criteria
-                        count+=1
+                if bitidx==8:   #if bit index is 8
+                    if bitval == 61:    #check for presence of equal symbol (ascii)
+                        stopcount+=1    #increment stopping criteria by 1
                     else:
-                        if(count > 0):
-                            for l in range(count):
-                                f.write(chr(61))
-                            count=0
-                        f.write(chr(bitval))
-                    if count == 6:
-                        f.close()
-                        return 1
-                    #Soln
-                    bitidx=0
-                    bitval=0
-                bitval |= (I[i, j, k] % 2)<<bitidx # Left shift for multiplying number by 2
+                        for l in range(stopcount):
+                            f.write(chr(61)) #write equal symbol ascii back to character if part of decoded text
+                        stopcount=0 #set stopcount back to zero since it does not meet the stopping criteria
+                        f.write(chr(bitval))    #write ascii back to character
+                    if stopcount == 6:  #if stopping criteria detected
+                        f.close()  #close the file
+                        return 0   #stop decoding
+                    bitidx=0    #set bit index back to 0
+                    bitval=0    #set bit value back to 0
+                bitval |= (I[i, j, k]%2)<<bitidx    #convert bit value back to ascii
+                bitidx+=1   #increment bit index by 1
+    f.close()   #close the file
 
-                bitidx+=1
+#open and convert payload data to bits
+bits=[]
+f=open('payload2.txt', 'r') #open payload file to read
+payload = f.read() + "======" #adds a stopping criteria
+blist = [ord(b) for b in payload] #converts payload2.txt characters plus stopping criteria into ascii and put into list
+for b in blist: #for each of the coverted ascii character
+    for i in range(8): #for i in range 1 to 8
+        bits.append((b >> i) & 1) #convert into binary
 
-    f.close()
+#open image
+I = np.asarray(cv2.imread('plane.png'))
 
+#encoding
+sign=[1,-1]
+idx=0
+for i in range(I.shape[0]): #for pixel in image row
+    for j in range(I.shape[1]): #for pixel in image column
+        for k in range(3): #for r, g, b in pixel
+            if idx<len(bits):   #if index is smaller than size of bits (indicate space avaliable to store)
+                if I[i][j][k]%2 != bits[idx]:   #if rgb value mod 2 is not equal to the image pixel bit (need perform LSB matching)
+                    s=sign[random.randint(0, 1)]    #random between bit sign 1 or -1
+                    if I[i][j][k]==0: s=1   #if rgb value = 0, use bit sign 1
+                    if I[i][j][k]==255: s=-1    #if rgb value = 255, use bit sign -1
+                    I[i][j][k]+=s   #assign the bit sign value (perform LSB matching)
+                idx+=1  #increment index by 1
 
+#output stego image after encode
+cv2.imwrite('plane_stego.png', I)
 
-
-txtfile = open('payload2.txt', 'r') # Open the payload text file you want to hide
-sPayload_msg = txtfile.read()
-
-#Soln
-sPayload_msg += "======" # Setting a stopping criteria
-print(sPayload_msg)
-
-iBlist = [ord(b) for b in sPayload_msg] # Convert each character into ASCI representation in int
-#print(iBlist)
-
-
-# Converts each ASCI character of the payload into binary
-iBits = []
-for b in iBlist:
-    for i in range(8):
-        #print(b >> i)
-        #print((b >> i) & 1)
-        iBits.append((b >> i) & 1) # Right shift is dividing a number by 2
-#print(iBits)
-#print(len(iBits))
-
-
-I = np.asarray(cv2.imread('cover.png')) #Converts the cover object into rgb values
-#print(I)
-
-#white = np.asarray(cv2.imread('white.png'))
-#print(white)
-
-
-sign = [1,-1]
-idx = 0
-for i in range(I.shape[0]): # I.shape[0] is the number of rows
-    # i is 0 to 449 (450 rows)
-    #print(i)
-    for j in range(I.shape[1]): # I.shape[1] is the number of columns
-        # j is 0 to 359 (360 columns)
-        #print(j)
-        for k in range(3): # k in range 0 1 2
-            #print('I[i][j][k] % 2 is', I[i][j][k] % 2)
-            #print('I[i][j][k] is ', I[i][j][k])
-            if idx < len(iBits): #len(bits) = 1248
-                if I[i][j][k] % 2 != iBits[idx]:
-                    s = sign[random.randint(0, 1)]
-                    #print('s is ', s)
-                    if I[i][j][k] == 0: s = 1
-                    if I[i][j][k] == 255: s = -1
-                    I[i][j][k]+=s
-                idx+=1
-
-cv2.imwrite('stego.png', I)
-
+#run decode function
 print("Extracting ... ")
 extract()
 print("Completed")
