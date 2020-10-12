@@ -12,7 +12,9 @@ def add_leading_zeros(binary_number, expected_length):
 	    A binary string of a length specified by the argument with the 
 	    same numerical value as the binary number from the first argument.
 	"""
+	#Get the length of the bin
 	length = len(binary_number)
+	#Insert 0 in front bin to fulfill the expected length
 	return (expected_length - length) * '0' + binary_number
 
 def rgb_to_binary(r, g, b):
